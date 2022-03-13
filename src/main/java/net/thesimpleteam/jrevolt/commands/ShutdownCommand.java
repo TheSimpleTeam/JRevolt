@@ -11,7 +11,11 @@ public class ShutdownCommand extends Command {
 
     @Override
     public void execute(String[] args, Message message) {
-        message.reply("Shutting down...");
+        if(getRevolt().getOwnerID() == null || !message.getAuthor().equals(getRevolt().getOwnerID())) {
+            message.reply(":x: You are not the owner of the bot!");
+            return;
+        }
+        message.reply(":white_check_mark: Shutting down...");
         RevoltWSClient.stopExecutorService();
         System.exit(0);
     }

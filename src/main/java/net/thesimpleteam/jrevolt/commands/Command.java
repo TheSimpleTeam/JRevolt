@@ -1,5 +1,6 @@
 package net.thesimpleteam.jrevolt.commands;
 
+import net.thesimpleteam.jrevolt.JRevolt;
 import net.thesimpleteam.jrevolt.entities.Message;
 import org.jetbrains.annotations.NotNull;
 
@@ -7,6 +8,7 @@ public abstract class Command {
 
     private final String name, description, usage;
     private final String[] aliases;
+    private JRevolt revolt;
 
     protected Command(@NotNull String name, String description, String usage, String[] aliases) {
         this.name = name;
@@ -39,5 +41,9 @@ public abstract class Command {
 
     public String[] getAliases() {
         return aliases;
+    }
+
+    protected JRevolt getRevolt() {
+        return revolt;
     }
 }
