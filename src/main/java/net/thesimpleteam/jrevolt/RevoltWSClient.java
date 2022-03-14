@@ -2,12 +2,11 @@ package net.thesimpleteam.jrevolt;
 
 import com.google.gson.JsonObject;
 import net.thesimpleteam.jrevolt.commands.Command;
+import net.thesimpleteam.jrevolt.entities.ChannelType;
 import net.thesimpleteam.jrevolt.entities.Message;
 import net.thesimpleteam.jrevolt.entities.Server;
 import net.thesimpleteam.jrevolt.entities.User;
-import net.thesimpleteam.jrevolt.event.MessageDeletedEvent;
-import net.thesimpleteam.jrevolt.event.MessageReceivedEvent;
-import net.thesimpleteam.jrevolt.event.ReadyEvent;
+import net.thesimpleteam.jrevolt.event.*;
 import net.thesimpleteam.jrevolt.exception.RevoltException;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -83,9 +82,40 @@ public class RevoltWSClient extends WebSocketClient {
                 revolt.getListeners().forEach(l -> l.onMessageDeleted(revolt.getGson().fromJson(object, MessageDeletedEvent.class)));
                 break;
             case "Authenticated":
-                JRevolt.LOGGER.info("authenticated");
+                revolt.getListeners().forEach(RevoltListener::onAuthenticated);
                 break;
-            case "Pong": break;
+            case "Pong":
+                revolt.getListeners().forEach(RevoltListener::onPong);
+                break;
+            case "MessageUpdate":
+                revolt.getListeners().forEach(l -> l.onMessageUpdated(revolt.getGson().fromJson(object, MessageUpdatedEvent.class)));
+                break;
+            case "ChannelCreate":
+                ChannelCreatedEvent e = revolt.getGson().fromJson(object, ChannelCreatedEvent.class);
+                setValue(e.getClass(), "type", ChannelType.getChannelType(e.getChannelType()), e);
+                revolt.getListeners().forEach(l -> l.onChannelCreated(e));
+                break;
+            case "ChannelUpdate":
+                revolt.getListeners().forEach(l -> l.onChannelUpdated(revolt.getGson().fromJson(object, ChannelUpdatedEvent.class)));
+                break;
+            case "ChannelDelete":
+                revolt.getListeners().forEach(l -> l.onChannelDeleted(revolt.getGson().fromJson(object, ChannelDeletedEvent.class)));
+                break;
+            case "ChannelGroupJoin":
+                revolt.getListeners().forEach(l -> l.onChannelGroupJoined(revolt.getGson().fromJson(object, ChannelGroupJoinEvent.class)));
+                break;
+            case "ChannelGroupLeave":
+                revolt.getListeners().forEach(l -> l.onChannelGroupLeft(revolt.getGson().fromJson(object, ChannelGroupLeftEvent.class)));
+                break;
+            case "ChannelStartTyping":
+                revolt.getListeners().forEach(l -> l.onChannelStartTyping(revolt.getGson().fromJson(object, ChannelStartTypingEvent.class)));
+                break;
+            case "ChannelStopTyping":
+                revolt.getListeners().forEach(l -> l.onChannelStopTyping(revolt.getGson().fromJson(object, ChannelStopTypingEvent.class)));
+                break;
+            case "ChannelAck":
+                revolt.getListeners().forEach(l -> l.onChannelAck(revolt.getGson().fromJson(object, ChannelAckEvent.class)));
+                break;
             default:
                 if(JRevolt.DEBUG) JRevolt.LOGGER.info("unknown message type: {} with message:\n {}", object.get("type").getAsString(), message);
                 break;
@@ -103,6 +133,17 @@ public class RevoltWSClient extends WebSocketClient {
             throw (RevoltException) ex;
         }
         ex.printStackTrace();
+    }
+
+    private void setValue(Class<?> clazz, String field, Object value, Object instance) {
+        try {
+            Field f = clazz.getDeclaredField(field);
+            f.setAccessible(true);
+            f.set(instance, value);
+            f.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
