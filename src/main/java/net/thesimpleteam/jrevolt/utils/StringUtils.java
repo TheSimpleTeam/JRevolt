@@ -9,7 +9,7 @@ public class StringUtils {
     }
 
     public static String wordUpperCase(String str, boolean space) {
-        char[] charArray = str.toCharArray();
+        char[] charArray = str.toLowerCase().toCharArray();
         StringBuilder builder = new StringBuilder();
         builder.append(str.substring(0, 1).toUpperCase());
         for (int i = 1; i < charArray.length; i++) {
