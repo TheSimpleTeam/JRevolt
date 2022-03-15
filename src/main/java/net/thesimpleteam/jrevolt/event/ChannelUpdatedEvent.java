@@ -15,7 +15,7 @@ public class ChannelUpdatedEvent implements Event {
         this.data = data;
     }
 
-    public class Data {
+    private class Data {
         private final Server.Icon icon;
         @SerializedName("role_permissions")
         private final Map<String, String> rolePermissions;

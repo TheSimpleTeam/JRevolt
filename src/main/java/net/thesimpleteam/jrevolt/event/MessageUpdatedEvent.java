@@ -30,7 +30,7 @@ public class MessageUpdatedEvent {
         return data;
     }
 
-    public static class Data {
+    private class Data {
         private final Edited edited;
         private final String content;
 
@@ -39,7 +39,7 @@ public class MessageUpdatedEvent {
             this.content = content;
         }
 
-        public static class Edited {
+        private class Edited {
             @SerializedName("$date")
             private final String date;
 

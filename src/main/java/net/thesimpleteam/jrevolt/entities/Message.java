@@ -7,6 +7,7 @@ import net.thesimpleteam.jrevolt.JRevolt;
 import net.thesimpleteam.jrevolt.utils.RequestHelper;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -55,12 +56,19 @@ public class Message {
         return content;
     }
 
+    /**
+     * @throws IllegalStateException if the bot does not have access to the channel or cannot send messages in the channel.
+     * @param content The content of the message.
+     */
     public void reply(String content) {
         JsonObject message = new JsonObject();
         message.addProperty("content", content);
         Request request = RequestHelper.post("channels/" + channelID + "/messages", revolt.getToken(), message);
         try (Response response = JRevolt.client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
+                if(response.code() == 403) {
+                    throw new IllegalStateException("You are not allowed to send messages in this channel");
+                }
                 throw new IOException("Unexpected code " + response);
             }
         } catch (IOException e) {

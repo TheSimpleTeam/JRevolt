@@ -11,18 +11,21 @@ import net.thesimpleteam.jrevolt.exception.RevoltException;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RevoltWSClient extends WebSocketClient {
 
     private final String token;
     private final JRevolt revolt;
-    private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
 
     public RevoltWSClient(JRevolt revolt) {
         super(URI.create(JRevolt.WS_BASE_URL));
@@ -40,6 +43,7 @@ public class RevoltWSClient extends WebSocketClient {
     @Override
     public void onMessage(String message) {
         JsonObject object = revolt.getGson().fromJson(message, JsonObject.class);
+        sendLog(object);
         switch (object.get("type").getAsString()) {
             case "Error":
                 throw new RevoltException(object.get("error").getAsString());
@@ -50,6 +54,9 @@ public class RevoltWSClient extends WebSocketClient {
                         revolt.getServers().toArray(new Server[0]))));
                 break;
             case "Message":
+                //Check if the message is a System Message
+                if(!object.get("content").isJsonPrimitive()) return;
+
                 Message msg = revolt.getGson().fromJson(object, Message.class);
                 try {
                     Field f = msg.getClass().getDeclaredField("revolt");
@@ -116,15 +123,61 @@ public class RevoltWSClient extends WebSocketClient {
             case "ChannelAck":
                 revolt.getListeners().forEach(l -> l.onChannelAck(revolt.getGson().fromJson(object, ChannelAckEvent.class)));
                 break;
-            default:
-                if(JRevolt.DEBUG) JRevolt.LOGGER.info("unknown message type: {} with message:\n {}", object.get("type").getAsString(), message);
+            case "ServerUpdate":
+                revolt.getListeners().forEach(l -> l.onServerUpdated(revolt.getGson().fromJson(object, ServerUpdatedEvent.class)));
                 break;
+            case "ServerDelete":
+                revolt.getListeners().forEach(l -> l.onServerDeleted(revolt.getGson().fromJson(object, ServerDeletedEvent.class)));
+                break;
+            case "ServerMemberUpdate":
+                //if(JRevolt.DEBUG) JRevolt.LOGGER.info("Received ServerMemberUpdate event with data:\n {}", object);
+                break;
+            default:
+                //if(JRevolt.DEBUG) JRevolt.LOGGER.info("unknown message type: {} with message:\n {}", object.get("type").getAsString(), message);
+                break;
+        }
+    }
+
+    private void sendLog(JsonObject object) {
+        if(!JRevolt.DEBUG) return;
+        //We don't want to send pong messages to the log to prevent log spam
+        if(object.get("type").getAsString().equals("Pong")) return;
+        JRevolt.LOGGER.info("Received {} event with data:\n {}", object.get("type").getAsString(), object);
+    }
+
+    private Class<?> getClass(String name) {
+        try {
+            return Class.forName(name);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private Class<?> getInnerClass(Class<?> clazz, String name) {
+        try {
+            return Class.forName(clazz.getName() + "$" + name);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void setRevolt(Event e) {
+        try {
+            Field revolt = e.getClass().getDeclaredField("revolt");
+            revolt.setAccessible(true);
+            revolt.set(e, this.revolt);
+            revolt.setAccessible(false);
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
         JRevolt.LOGGER.error("closed connection {} with code {} and reason {}", this.getConnection().getRemoteSocketAddress(), code, reason);
+        executorService.shutdown();
     }
 
     @Override
@@ -153,5 +206,9 @@ public class RevoltWSClient extends WebSocketClient {
 
     public static void stopExecutorService() {
         executorService.shutdown();
+    }
+
+    public static ScheduledExecutorService getExecutorService() {
+        return executorService;
     }
 }

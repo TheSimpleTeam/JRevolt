@@ -59,7 +59,7 @@ public class JRevolt {
         lines.close();
         RevoltWSClient client = new RevoltWSClient(revolt);
         client.connect();
-        revolt.addCommands(new PingCommand(), new ShutdownCommand(), new SayCommand());
+        revolt.addCommands(new PingCommand(client), new ShutdownCommand(), new SayCommand());
         revolt.addListener(new RevoltListener() {
             @Override
             public void onMessageReceived(MessageReceivedEvent event) {

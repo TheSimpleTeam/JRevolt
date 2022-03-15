@@ -1,4 +1,3 @@
 package net.thesimpleteam.jrevolt.event;
 
-public interface Event {
-}
+public interface Event {}

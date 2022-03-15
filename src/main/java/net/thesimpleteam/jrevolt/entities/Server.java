@@ -29,7 +29,7 @@ public class Server {
         this.banner = banner;
     }
 
-    public class SystemMessage {
+    public static class SystemMessage {
         @SerializedName("user_joined")
         private final String userJoined;
         @SerializedName("user_left")
@@ -63,6 +63,9 @@ public class Server {
         }
     }
 
+    /**
+     * It can be either an icon or a banner {@link Icon#getTag()}
+     */
     public static class Icon {
         @SerializedName("_id")
         private final String id;
