@@ -9,6 +9,8 @@ A Java Api wrapper for [Revolt](https://revolt.chat/).
 ```java
 
 import net.thesimpleteam.jrevolt.JRevolt;
+import net.thesimpleteam.jrevolt.event.RevoltListener;
+import net.thesimpleteam.jrevolt.event.MessageReceivedEvent;
 
 public class Main {
     
