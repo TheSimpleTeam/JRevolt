@@ -1,6 +1,34 @@
 # JRevolt
 
-A revolt wrapper in java
+A Java Api wrapper for [Revolt](https://revolt.chat/).
+
+---
+
+### Example
+
+```java
+
+import net.thesimpleteam.jrevolt.JRevolt;
+
+public class Main {
+    
+    public static class MyListener implements RevoltListener {
+        @Override
+        public void onMessageReceived(MessageReceivedEvent event) {
+            if(event.getContent().equalsIngoreCase("ping")) {
+                event.getMessage().reply("Pong !");
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        JRevolt revolt = new JRevolt("YOUR_TOKEN");
+        revolt.addListener(new MyListener());
+    }
+    
+}
+
+```
 
 ---
 
@@ -36,19 +64,19 @@ A revolt wrapper in java
 
 - [x] ChannelAck
 
-- [ ] ServerUpdate
+- [x] ServerUpdate
 
-- [ ] ServerDelete
+- [x] ServerDelete
 
-- [ ] ServerMemberUpdate
+- [x] ServerMemberUpdate
 
-- [ ] ServerMemberJoin
+- [x] ServerMemberJoin
 
-- [ ] ServerMemberLeave
+- [x] ServerMemberLeave
 
-- [ ] ServerRoleUpdate
+- [x] ServerRoleUpdate
 
-- [ ] ServerRoleDelete
+- [x] ServerRoleDelete
 
 - [ ] UserUpdate
 

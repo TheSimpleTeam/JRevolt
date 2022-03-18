@@ -1,6 +1,10 @@
 package net.thesimpleteam.jrevolt.event;
 
+import com.google.gson.annotations.Expose;
+
 public class MessageDeletedEvent implements Event {
+
+    @Expose
     private final String id, channel;
 
     public MessageDeletedEvent(String id, String channel) {

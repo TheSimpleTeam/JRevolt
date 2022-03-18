@@ -30,10 +30,12 @@ import java.util.stream.Stream;
 public class JRevolt {
 
     private final String token;
+    private final RevoltWSClient wsClient;
     public static final String WS_BASE_URL = "wss://ws.revolt.chat";
     public static final String BASE_URL = "https://api.revolt.chat/";
     public static final Logger LOGGER = LoggerFactory.getLogger(JRevolt.class);
-    private static final Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+    private static final Gson gson = new GsonBuilder().serializeNulls()
+            .excludeFieldsWithoutExposeAnnotation().create();
     public static final OkHttpClient client = new OkHttpClient.Builder().build();
     private String prefix = "!";
     private String ownerID;
@@ -45,6 +47,8 @@ public class JRevolt {
     
     public JRevolt(String token) {
         this.token = token;
+        this.wsClient = new RevoltWSClient(this);
+        this.wsClient.connect();
     }
 
     public static void main(String[] args) throws IOException {
@@ -57,13 +61,11 @@ public class JRevolt {
         JRevolt revolt = new JRevolt(properties.get("token"));
         revolt.setOwnerID(properties.get("ownerID"));
         lines.close();
-        RevoltWSClient client = new RevoltWSClient(revolt);
-        client.connect();
-        revolt.addCommands(new PingCommand(client), new ShutdownCommand(), new SayCommand());
+        revolt.addCommands(new PingCommand(), new ShutdownCommand(), new SayCommand());
         revolt.addListener(new RevoltListener() {
             @Override
             public void onMessageReceived(MessageReceivedEvent event) {
-                if(Objects.equals(event.getMessage().getAuthorID(), revolt.getSelfUser().getId())) return;
+                if(Objects.equals(event.getMessage().getAuthor().getId(), revolt.getSelfUser().getId())) return;
                 LOGGER.info("Received message from user : {} : {}.", event.getMessage().getAuthor().getUsername(),
                         event.getMessage().getContent());
             }
@@ -143,7 +145,7 @@ public class JRevolt {
     public Optional<User> getUser(String id) {
         return users.stream().filter(user -> user.getId().equals(id)).findFirst();
     }
-
+    
     public User getSelfUser() {
         Request request = RequestHelper.get("users/@me", token);
         try {

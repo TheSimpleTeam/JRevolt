@@ -1,5 +1,6 @@
 package net.thesimpleteam.jrevolt.entities;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class Server {
@@ -64,23 +65,35 @@ public class Server {
     }
 
     /**
-     * It can be either an icon or a banner {@link Icon#getTag()}
+     * It can be either an icon or a banner or an attachment {@link Icon#getTag()}
      */
     public static class Icon {
         @SerializedName("_id")
+        @Expose
         private final String id;
+        @Expose
         private final String tag;
+        @Expose
         private final String filename;
+        @Expose
         @SerializedName("content_type")
         private final String contentType;
+        @Expose
         private final int size;
+        @Expose
+        private final Metadata metadata;
 
-        private Icon(String id, String tag, String filename, String contentType, int size) {
+        private Icon(String id, String tag, String filename, String contentType, int size, Metadata metadata) {
             this.id = id;
             this.tag = tag;
             this.filename = filename;
             this.contentType = contentType;
             this.size = size;
+            this.metadata = metadata;
+        }
+
+        public Metadata getMetadata() {
+            return metadata;
         }
 
         public String getId() {
@@ -105,8 +118,9 @@ public class Server {
     }
 
     public class Category {
-        public String id;
-        public String title;
+        @Expose
+        public String id, title;
+        @Expose
         public String[] channels;
     }
 

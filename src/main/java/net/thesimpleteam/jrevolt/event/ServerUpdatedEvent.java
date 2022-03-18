@@ -1,13 +1,17 @@
 package net.thesimpleteam.jrevolt.event;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import net.thesimpleteam.jrevolt.entities.Server;
 
 public class ServerUpdatedEvent implements Event {
 
+    @Expose
     @SerializedName("id")
     private String serverId;
+    @Expose
     private final Data data;
+    @Expose
     private final String clear;
 
     public ServerUpdatedEvent(String serverId, Data data, String clear) {
@@ -28,11 +32,16 @@ public class ServerUpdatedEvent implements Event {
         return clear;
     }
 
-    private class Data {
+    public class Data {
+        @Expose
         private final String description;
+        @Expose
         private final Server.SystemMessage systemMessage;
+        @Expose
         private final Server.Icon banner;
+        @Expose
         private final Server.Icon icon;
+        @Expose
         private final String name;
 
         private Data(String description, Server.SystemMessage systemMessage, Server.Icon banner, Server.Icon icon, String name) {

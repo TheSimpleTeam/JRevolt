@@ -1,5 +1,6 @@
 package net.thesimpleteam.jrevolt.event;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import net.thesimpleteam.jrevolt.entities.Server;
 
@@ -7,7 +8,9 @@ import java.util.Map;
 
 public class ChannelUpdatedEvent implements Event {
 
+    @Expose
     private final String id;
+    @Expose
     private final Data data;
 
     public ChannelUpdatedEvent(String id, Data data) {
@@ -15,13 +18,13 @@ public class ChannelUpdatedEvent implements Event {
         this.data = data;
     }
 
-    private class Data {
-        private final Server.Icon icon;
+    public class Data {
+        @Expose private final Server.Icon icon;
         @SerializedName("role_permissions")
-        private final Map<String, String> rolePermissions;
-        private final String description;
-        private final boolean nsfw;
-        private final String name;
+        @Expose private final Map<String, String> rolePermissions;
+        @Expose private final String description;
+        @Expose private final boolean nsfw;
+        @Expose private final String name;
 
         private Data(Server.Icon icon, Map<String, String> rolePermissions, String description, boolean nsfw, String name) {
             this.icon = icon;

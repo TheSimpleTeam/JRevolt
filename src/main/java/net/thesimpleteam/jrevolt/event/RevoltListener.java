@@ -20,7 +20,7 @@ public interface RevoltListener {
     default void onPong() {}
 
     /**
-     * Called when a message is sent to the server.
+     * Called when a message has been sent to the server.
      */
     default void onMessageReceived(MessageReceivedEvent event) {}
 
@@ -87,4 +87,29 @@ public interface RevoltListener {
      * Called when a server has been deleted.
      */
     default void onServerDeleted(ServerDeletedEvent event) {}
+
+    /**
+     * Called when a user has joined a server.
+     */
+    default void onServerMemberJoined(ServerMemberJoinedEvent event) {}
+
+    /**
+     * Called when a user has been updated, like when a user's nickname has been changed.
+     */
+    default void onServerMemberUpdated(ServerMemberUpdatedEvent event) {}
+
+    /**
+     * Called when a user has left a server.
+     */
+    default void onServerMemberLeft(ServerMemberLeftEvent event) {}
+
+    /**
+     * Called when a server role has been updated or created.
+     */
+    default void onServerRoleUpdated(ServerRoleUpdatedEvent event) {}
+
+    /**
+     * Called when a server role has been deleted.
+     */
+    default void onServerRoleDeleted(ServerRoleDeletedEvent event) {}
 }

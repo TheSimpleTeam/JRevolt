@@ -1,7 +1,7 @@
 package net.thesimpleteam.jrevolt.commands;
 
 import net.thesimpleteam.jrevolt.JRevolt;
-import net.thesimpleteam.jrevolt.entities.Message;
+import net.thesimpleteam.jrevolt.entities.messages.Message;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Command {

@@ -1,7 +1,10 @@
 package net.thesimpleteam.jrevolt.event;
 
+import com.google.gson.annotations.Expose;
+
 public class ChannelGroupJoinEvent implements Event {
 
+    @Expose
     private final String id, user;
 
     public ChannelGroupJoinEvent(String id, String user) {

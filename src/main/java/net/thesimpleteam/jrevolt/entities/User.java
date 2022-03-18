@@ -1,19 +1,30 @@
 package net.thesimpleteam.jrevolt.entities;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 public class User {
 
     @SerializedName("_id")
+    @Expose
     private final String id;
+    @Expose
     private final String username;
+    @Expose
     private final Avatar avatar;
+    @Expose
     private final Relation[] relations;
+    @Expose
     private final int badges;
+    @Expose
     private final Status status;
+    @Expose
     private final String relationship;
+    @Expose
     private final boolean online;
+    @Expose
     private final int flags;
+    @Expose
     private final Bot bot;
 
     public User(String id, String username, Avatar avatar, Relation[] relations, int badges, Status status, String relationship, boolean online, int flags, Bot bot) {
@@ -31,11 +42,16 @@ public class User {
 
     public static class Avatar {
         @SerializedName("_id")
+        @Expose
         private final String id;
+        @Expose
         private final String tag, filename;
         @SerializedName("content_type")
+        @Expose
         private final String contentType;
+        @Expose
         private final int size;
+        @Expose
         private final Metadata metadata;
 
         public Avatar(String id, String tag, String filename, String contentType, int size, Metadata metadata) {
@@ -73,8 +89,10 @@ public class User {
     }
 
     public static class Relation {
+        @Expose
         private final String status;
         @SerializedName("_id")
+        @Expose
         private final String id;
 
         public Relation(String status, String id) {
@@ -92,6 +110,7 @@ public class User {
     }
 
     public static class Status {
+        @Expose
         private final String text, presence;
 
         public Status(String text, String presence) {
@@ -110,6 +129,7 @@ public class User {
 
 
     public static class Bot {
+        @Expose
         private final String owner;
 
         public Bot(String owner) {

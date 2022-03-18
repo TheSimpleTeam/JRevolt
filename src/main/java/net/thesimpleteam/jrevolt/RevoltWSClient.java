@@ -3,23 +3,21 @@ package net.thesimpleteam.jrevolt;
 import com.google.gson.JsonObject;
 import net.thesimpleteam.jrevolt.commands.Command;
 import net.thesimpleteam.jrevolt.entities.ChannelType;
-import net.thesimpleteam.jrevolt.entities.Message;
+import net.thesimpleteam.jrevolt.entities.messages.Message;
 import net.thesimpleteam.jrevolt.entities.Server;
 import net.thesimpleteam.jrevolt.entities.User;
 import net.thesimpleteam.jrevolt.event.*;
 import net.thesimpleteam.jrevolt.exception.RevoltException;
+import net.thesimpleteam.jrevolt.utils.RequestHelper;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class RevoltWSClient extends WebSocketClient {
 
@@ -27,7 +25,7 @@ public class RevoltWSClient extends WebSocketClient {
     private final JRevolt revolt;
     private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2);
 
-    public RevoltWSClient(JRevolt revolt) {
+    RevoltWSClient(JRevolt revolt) {
         super(URI.create(JRevolt.WS_BASE_URL));
         this.token = revolt.getToken();
         this.revolt = revolt;
@@ -56,31 +54,15 @@ public class RevoltWSClient extends WebSocketClient {
             case "Message":
                 //Check if the message is a System Message
                 if(!object.get("content").isJsonPrimitive()) return;
-
-                Message msg = revolt.getGson().fromJson(object, Message.class);
-                try {
-                    Field f = msg.getClass().getDeclaredField("revolt");
-                    f.setAccessible(true);
-                    f.set(msg, revolt);
-                    f.setAccessible(false);
-                    Field author = msg.getClass().getDeclaredField("author");
-                    author.setAccessible(true);
-                    author.set(msg, revolt.getUser(msg.getAuthorID()).orElse(null));
-                    author.setAccessible(false);
-                } catch (IllegalAccessException | NoSuchFieldException e) {
-                    throw new RuntimeException(e);
-                }
-                revolt.getListeners().forEach(l -> l.onMessageReceived(new MessageReceivedEvent(msg)));
+                Message msg = revolt.getGson().fromJson(RequestHelper.getBody(RequestHelper.get(String.format("channels/%s/messages/%s",
+                        object.get("channel").getAsString(), object.get("_id").getAsString()), revolt.getToken())).orElseThrow(RuntimeException::new), Message.class);
+                setValue(Message.class, "revolt", revolt, msg);
+                setValue(Message.class, "author", revolt.getUser(object.get("author").getAsString()).orElse(null), msg);
+                revolt.getListeners().forEach(l -> l.onMessageReceived(new MessageReceivedEvent(msg.getId(), msg.getNonce(), msg.getChannelID(),
+                        msg.getAuthor().getId(), msg.getAuthor(), msg.getContent(), msg)));
                 revolt.getCommands().stream().filter(c -> c.getName().equals(msg.getContent().substring(revolt.getPrefix().length()).split("[^\\S\\r\\n]+")[0]))
                         .forEach(c -> {
-                            try {
-                                Field f = Command.class.getDeclaredField("revolt");
-                                f.setAccessible(true);
-                                f.set(c, revolt);
-                                f.setAccessible(false);
-                            } catch (IllegalAccessException | NoSuchFieldException e) {
-                                throw new RuntimeException(e);
-                            }
+                            setValue(Command.class, "revolt", revolt, c);
                             String[] args = msg.getContent().split("[^\\S\\r\\n]+");
                             c.execute(Arrays.copyOfRange(args, 1, args.length), msg);
                         });
@@ -129,11 +111,22 @@ public class RevoltWSClient extends WebSocketClient {
             case "ServerDelete":
                 revolt.getListeners().forEach(l -> l.onServerDeleted(revolt.getGson().fromJson(object, ServerDeletedEvent.class)));
                 break;
+            case "ServerMemberJoin":
+                revolt.getListeners().forEach(l -> l.onServerMemberJoined(revolt.getGson().fromJson(object, ServerMemberJoinedEvent.class)));
+                break;
             case "ServerMemberUpdate":
-                //if(JRevolt.DEBUG) JRevolt.LOGGER.info("Received ServerMemberUpdate event with data:\n {}", object);
+                revolt.getListeners().forEach(l -> l.onServerMemberUpdated(revolt.getGson().fromJson(object, ServerMemberUpdatedEvent.class)));
+                break;
+            case "ServerMemberLeave":
+                revolt.getListeners().forEach(l -> l.onServerMemberLeft(revolt.getGson().fromJson(object, ServerMemberLeftEvent.class)));
+                break;
+            case "ServerRoleUpdate":
+                revolt.getListeners().forEach(l -> l.onServerRoleUpdated(revolt.getGson().fromJson(object, ServerRoleUpdatedEvent.class)));
+                break;
+            case "ServerRoleDelete":
+                revolt.getListeners().forEach(l -> l.onServerRoleDeleted(revolt.getGson().fromJson(object, ServerRoleDeletedEvent.class)));
                 break;
             default:
-                //if(JRevolt.DEBUG) JRevolt.LOGGER.info("unknown message type: {} with message:\n {}", object.get("type").getAsString(), message);
                 break;
         }
     }
@@ -143,35 +136,6 @@ public class RevoltWSClient extends WebSocketClient {
         //We don't want to send pong messages to the log to prevent log spam
         if(object.get("type").getAsString().equals("Pong")) return;
         JRevolt.LOGGER.info("Received {} event with data:\n {}", object.get("type").getAsString(), object);
-    }
-
-    private Class<?> getClass(String name) {
-        try {
-            return Class.forName(name);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private Class<?> getInnerClass(Class<?> clazz, String name) {
-        try {
-            return Class.forName(clazz.getName() + "$" + name);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private void setRevolt(Event e) {
-        try {
-            Field revolt = e.getClass().getDeclaredField("revolt");
-            revolt.setAccessible(true);
-            revolt.set(e, this.revolt);
-            revolt.setAccessible(false);
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 
     @Override
@@ -188,7 +152,7 @@ public class RevoltWSClient extends WebSocketClient {
         ex.printStackTrace();
     }
 
-    private void setValue(Class<?> clazz, String field, Object value, Object instance) {
+    public static void setValue(Class<?> clazz, String field, Object value, Object instance) {
         try {
             Field f = clazz.getDeclaredField(field);
             f.setAccessible(true);

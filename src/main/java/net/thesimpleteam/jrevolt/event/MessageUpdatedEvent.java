@@ -1,15 +1,17 @@
 package net.thesimpleteam.jrevolt.event;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import net.thesimpleteam.jrevolt.entities.messages.Message;
 
 public class MessageUpdatedEvent {
 
+    @Expose
     private final String id;
     @SerializedName("channel")
+    @Expose
     private final String channelID;
+    @Expose
     private final Data data;
 
     public MessageUpdatedEvent(String id, String channelID, Data data) {
@@ -30,33 +32,16 @@ public class MessageUpdatedEvent {
         return data;
     }
 
-    private class Data {
-        private final Edited edited;
-        private final String content;
+    public class Data {
+        @Expose private final Message.Edited edited;
+        @Expose private final String content;
 
-        public Data(Edited edited, String content) {
+        public Data(Message.Edited edited, String content) {
             this.edited = edited;
             this.content = content;
         }
 
-        private class Edited {
-            @SerializedName("$date")
-            private final String date;
-
-            public Edited(String date) {
-                this.date = date;
-            }
-
-            public String getDate() {
-                return date;
-            }
-
-            public LocalDateTime getDateTime() {
-                return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-ddTHH:mm:ss.SSSZ"));
-            }
-        }
-
-        public Edited getEdited() {
+        public Message.Edited getEdited() {
             return edited;
         }
 

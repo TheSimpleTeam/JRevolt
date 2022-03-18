@@ -1,14 +1,18 @@
 package net.thesimpleteam.jrevolt.event;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class ServerMemberUpdated implements Event {
+public class ServerMemberUpdatedEvent implements Event {
 
+    @Expose
     private final Id id;
+    @Expose
     private final Data data;
+    @Expose
     private final String clear;
 
-    public ServerMemberUpdated(Id id, Data data, String clear) {
+    public ServerMemberUpdatedEvent(Id id, Data data, String clear) {
         this.id = id;
         this.data = data;
         this.clear = clear;
@@ -26,7 +30,8 @@ public class ServerMemberUpdated implements Event {
         return clear;
     }
 
-    private class Id {
+    public class Id {
+        @Expose
         private final String server, user;
 
         private Id(String server, String user) {
@@ -43,7 +48,8 @@ public class ServerMemberUpdated implements Event {
         }
     }
 
-    private class Data {
+    public class Data {
+        @Expose
         @SerializedName("roles")
         private final String[] rolesIds;
 
