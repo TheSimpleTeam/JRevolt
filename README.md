@@ -7,11 +7,6 @@ A Java Api wrapper for [Revolt](https://revolt.chat/).
 ### Example
 
 ```java
-
-import net.thesimpleteam.jrevolt.JRevolt;
-import net.thesimpleteam.jrevolt.event.RevoltListener;
-import net.thesimpleteam.jrevolt.event.MessageReceivedEvent;
-
 public class Main {
     
     public static class MyListener implements RevoltListener {
@@ -23,9 +18,21 @@ public class Main {
         }
     }
     
+    public static class PingCommand extends Command {
+        public PingCommand(String name, String description) {
+            super(name, description);
+        }
+
+        @Override
+        public void execute(String[] args, Message message) {
+            message.reply("Pong !");
+        }
+    }
+    
     public static void main(String[] args) {
         JRevolt revolt = new JRevolt("YOUR_TOKEN");
         revolt.addListener(new MyListener());
+        revolt.addCommands(new PingCommand("ping", "Pong !"));
     }
     
 }

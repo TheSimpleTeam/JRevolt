@@ -20,12 +20,12 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class JRevolt {
 
@@ -52,15 +52,12 @@ public class JRevolt {
     }
 
     public static void main(String[] args) throws IOException {
-        Stream<String> lines = Files.lines(new File("config.properties").toPath());
-        Map<String, String> properties = new HashMap<>();
-        lines.filter(l -> !l.startsWith("#")).forEach(line -> {
-            String[] split = line.split("=");
-            properties.put(split[0], split[1]);
-        });
-        JRevolt revolt = new JRevolt(properties.get("token"));
-        revolt.setOwnerID(properties.get("ownerID"));
-        lines.close();
+        Properties properties = new Properties();
+        try(InputStream is = Files.newInputStream(Paths.get("config.properties"))) {
+            properties.load(is);
+        }
+        JRevolt revolt = new JRevolt(properties.getProperty("token"));
+        revolt.setOwnerID(properties.getProperty("ownerID"));
         revolt.addCommands(new PingCommand(), new ShutdownCommand(), new SayCommand());
         revolt.addListener(new RevoltListener() {
             @Override
