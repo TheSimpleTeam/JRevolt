@@ -3,6 +3,7 @@ package net.thesimpleteam.jrevolt.commands;
 import net.thesimpleteam.jrevolt.JRevolt;
 import net.thesimpleteam.jrevolt.entities.messages.EmbedBuilder;
 import net.thesimpleteam.jrevolt.entities.messages.Message;
+import net.thesimpleteam.jrevolt.entities.messages.MessageBuilder;
 
 import java.awt.Color;
 import java.io.IOException;
@@ -25,13 +26,12 @@ public class PingCommand extends Command {
             //THIS SHOULD NEVER HAPPEN
             throw new RuntimeException(e);
         }
-        message.replyEmbed(".", new EmbedBuilder()
+        new MessageBuilder(this.getRevolt()).embeds(new EmbedBuilder()
                 .setTitle("Pong")
                 .setIconUrl("https://avatars.githubusercontent.com/u/86493495?s=200&v=4")
                 .setUrl("https://developers.revolt.chat/api/")
                 .setColour(String.valueOf(Color.pink.getRGB()))
                 .setDescription("The bot ping is " + currentTime + " ms.")
-                .build()
-        );
+                .build()).sendMessage(message.getChannelID());
     }
 }
